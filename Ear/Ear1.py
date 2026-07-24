@@ -10,18 +10,22 @@ def listen_and_transcribe():
     duration = 5
     
     print("Listening... (Press Ctrl+C to stop)")
-    while True:
-        audio_chunk = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
-        sd.wait()
+    try:
+        while True:
+            audio_chunk = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
+            sd.wait()
+            
+            audio_data = np.squeeze(audio_chunk)
+            
+            segments, _ = model.transcribe(audio_data, beam_size=5)
         
-        audio_data = np.squeeze(audio_chunk)
-        
-        segments, _ = model.transcribe(audio_data, beam_size=5)
-        
-        for segment in segments:
-            text = segment.text.strip()
-            if text:
-                print(text)
+            for segment in segments:
+                text = segment.text.strip()
+                if text:
+                    print(text)
+
+    except KeyboardInterrupt:
+        print("\nStopping the Ear. Goodbye!")    
 
 if __name__ == "__main__":
     listen_and_transcribe()
