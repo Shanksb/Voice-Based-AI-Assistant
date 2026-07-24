@@ -4,7 +4,7 @@ from faster_whisper import WhisperModel
 
 def listen_and_transcribe():
     print("Loading AI model...")
-    model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
+    model = WhisperModel("base.en", device="cpu", compute_type="float32")
     
     sample_rate = 16000
     duration = 5
@@ -17,7 +17,7 @@ def listen_and_transcribe():
             
             audio_data = np.squeeze(audio_chunk)
             
-            segments, _ = model.transcribe(audio_data, beam_size=5)
+            segments, _ = model.transcribe(audio_data, beam_size=5, vad_filter=True)
         
             for segment in segments:
                 text = segment.text.strip()
