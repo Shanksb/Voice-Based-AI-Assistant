@@ -4,7 +4,15 @@ from faster_whisper import WhisperModel
 
 def listen_and_transcribe():
     print("Loading AI model...")
-    model = WhisperModel("base.en", device="cpu", compute_type="float32")
+    model = WhisperModel(
+        "base.en",
+        device="cpu",
+        compute_type="float32",
+        cpu_threads=8,
+        language="en",
+        temperature=0.0,
+        initial_prompt="Hello, my name is Shashank. I am speaking English with a slight Indian accent."
+        )
     
     sample_rate = 16000
     duration = 5
