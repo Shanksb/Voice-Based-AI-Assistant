@@ -1,0 +1,83 @@
+# =========================
+# Operating System Files
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================
+# IDEs and Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# =========================
+# Python & Machine Learning
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+dist/
+*.egg-info/
+*.egg
+.env
+*.ipynb_checkpoints/
+# Exclude large dataset files by default
+*.csv
+*.dat
+*.h5
+
+# =========================
+# MATLAB
+# =========================
+*.asv
+*.m~
+slprj/
+*.slxc
+*.mex*
+*.mat
+# If using Simulink auto-generated code
+*ert_rtw/
+*.slx.autosave
+
+# =========================
+# Xilinx Vivado / Verilog
+# =========================
+*.jou
+*.log
+*.str
+*.dcp
+*.bit
+*.hw/
+*.sim/
+*.runs/
+*.cache/
+*.ip_user_files/
+.Xil/
+# Exclude the Vivado project file itself (often better to version control TCL scripts)
+*.xpr
+
+# =========================
+# C / C++ 
+# =========================
+*.o
+*.obj
+*.out
+*.exe
+*.dll
+*.dylib
