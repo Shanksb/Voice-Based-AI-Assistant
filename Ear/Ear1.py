@@ -12,7 +12,7 @@ def listen_and_transcribe():
         )
     
     sample_rate = 16000
-    duration = 8
+    duration = 10
     
     print("Listening... (Press Ctrl+C to stop)")
     try:
