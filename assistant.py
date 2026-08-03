@@ -4,14 +4,16 @@ import sounddevice as sd
 import numpy as np
 from faster_whisper import WhisperModel
 from groq import Groq
+from gtts import gTTS
+import playsound
 from dotenv import load_dotenv
 
-
 load_dotenv()
+
 API_KEY = os.getenv("GROQ_API_KEY")
 
 if API_KEY is None or API_KEY == "":
-    print("\n🛑 ERROR: The Brain is missing its API Key!")
+    print("\n ERROR: The Brain is missing its API Key!")
     print("Please make sure you have a .env file with your GROQ_API_KEY set.")
     sys.exit()
 
@@ -19,7 +21,6 @@ if API_KEY is None or API_KEY == "":
 client = Groq(api_key=API_KEY)
 
 def think(user_input):
-    # We send the transcribed text to the LLM
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
@@ -37,11 +38,20 @@ def think(user_input):
     
     return completion.choices[0].message.content
 
+def speak(text):
+    print(" Jarvis is speaking...")
+    tts = gTTS(text=text, lang='en',)
+
+    filename = "response.mp3"
+    tts.save(filename)
+
+    playsound.playsound(filename)
+
+    os.remove(filename)
 
 def listen_and_respond():
     print("Loading AI...")
-    
-    # Initialize the Ear
+
     ear_model = WhisperModel(
         "base.en",
         device="cpu",
@@ -55,6 +65,7 @@ def listen_and_respond():
     
     try:
         while True:
+            # 1. Listen to the microphone
             audio_chunk = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
             sd.wait() 
 
@@ -75,13 +86,17 @@ def listen_and_respond():
             
             full_transcription = full_transcription.strip()
             
+            # 5. The Handoff! If the Ear heard something, send it to the Brain
             if full_transcription:
-                print(f"\n🗣️ You: {full_transcription}")
-                print("")
+                print(f"\n You: {full_transcription}")
+                print(" Jarvis is thinking...")
                 
+                # Hand the text to the Groq API
                 answer = think(full_transcription)
                 
-                print(f"Jarvis: {answer}")
+                print(f"🤖 Jarvis: {answer}")
+                speak(answer)
+                
                 print("\nListening...") 
 
     except KeyboardInterrupt:
