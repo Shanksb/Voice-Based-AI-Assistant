@@ -77,11 +77,11 @@ def listen_and_respond():
             
             if full_transcription:
                 print(f"\n🗣️ You: {full_transcription}")
-                print("🧠 Jarvis is thinking...")
+                print("")
                 
                 answer = think(full_transcription)
                 
-                print(f"🤖 Jarvis: {answer}")
+                print(f"Jarvis: {answer}")
                 print("\nListening...") 
 
     except KeyboardInterrupt:
