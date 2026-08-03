@@ -4,16 +4,15 @@ import sounddevice as sd
 import numpy as np
 from faster_whisper import WhisperModel
 from groq import Groq
-from gtts import gTTS
-import playsound
 from dotenv import load_dotenv
+import pyttsx3 
 
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
 
 if API_KEY is None or API_KEY == "":
-    print("\n ERROR: The Brain is missing its API Key!")
+    print("\n🛑 ERROR: The Brain is missing its API Key!")
     print("Please make sure you have a .env file with your GROQ_API_KEY set.")
     sys.exit()
 
@@ -38,20 +37,20 @@ def think(user_input):
     
     return completion.choices[0].message.content
 
+voice_engine = pyttsx3.init()
+
+voice_engine.setProperty('rate', 190) 
+
 def speak(text):
     print(" Jarvis is speaking...")
-    tts = gTTS(text=text, lang='en',)
+    voice_engine.say(text)
+    voice_engine.runAndWait()
 
-    filename = "response.mp3"
-    tts.save(filename)
-
-    playsound.playsound(filename)
-
-    os.remove(filename)
 
 def listen_and_respond():
     print("Loading AI...")
-
+    
+    # Initialize the Ear
     ear_model = WhisperModel(
         "base.en",
         device="cpu",
@@ -65,12 +64,11 @@ def listen_and_respond():
     
     try:
         while True:
-            # 1. Listen to the microphone
             audio_chunk = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
             sd.wait() 
 
             audio_data = np.squeeze(audio_chunk)
-
+            
             segments, _ = ear_model.transcribe(
                 audio_data, 
                 beam_size=5, 
@@ -79,25 +77,24 @@ def listen_and_respond():
                 temperature=0.0, 
                 initial_prompt="Hello, my name is Shashank. I am speaking English with a slight Indian accent."
             )
-            
+
             full_transcription = ""
             for segment in segments:
                 full_transcription += segment.text.strip() + " "
             
             full_transcription = full_transcription.strip()
-            
-            # 5. The Handoff! If the Ear heard something, send it to the Brain
+
             if full_transcription:
                 print(f"\n You: {full_transcription}")
-                print(" Jarvis is thinking...")
-                
-                # Hand the text to the Groq API
+                print("🧠 Jarvis is thinking...")
+
                 answer = think(full_transcription)
-                
-                print(f"🤖 Jarvis: {answer}")
+            
+                print(f" Jarvis: {answer}")
+
                 speak(answer)
                 
-                print("\nListening...") 
+                print("\nListening...")
 
     except KeyboardInterrupt:
         print("\n\nShutting down Jarvis. Goodbye!")
