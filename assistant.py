@@ -19,23 +19,63 @@ if API_KEY is None or API_KEY == "":
 # Wake up the Groq client
 client = Groq(api_key=API_KEY)
 
+def search_web(query):
+    print(f" Jarvis is searching the web for: '{query}'...")
+    try:
+        # Ask DuckDuckGo for the top 3 results
+        results = DDGS().text(query, max_results=3)
+        if not results:
+            return "No search results found."
+        
+        # Combine the text from the top 3 websites into one paragraph
+        search_text = ""
+        for res in results:
+            search_text += f"- {res['body']}\n"
+        return search_text
+        
+    except Exception as e:
+        return f"Search failed: {e}"
+
 def think(user_input):
+    system_prompt = """You are a helpful, witty, and concise AI assistant named Jarvis. 
+    Keep your answers short and conversational. Do not use markdown formatting.
+    
+    CRITICAL RULE: If the user asks about current events, real-time data, weather, or something you don't know, you must reply EXACTLY with this format:
+    SEARCH: [your search query]
+    
+    Do not add any other text if you are searching."""
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_input}
+    ]
+    
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful, witty, and concise AI assistant named Jarvis. Keep your answers short and conversational. Do not use markdown formatting in your responses."
-            },
-            {
-                "role": "user",
-                "content": user_input
-            }
-        ],
+        messages=messages,
         temperature=0.7, 
     )
     
-    return completion.choices[0].message.content
+    response = completion.choices[0].message.content.strip()
+    
+    if response.startswith("SEARCH:"):
+        query = response.replace("SEARCH:", "").strip()
+        search_results = search_web(query)
+
+        messages.append({"role": "assistant", "content": response})
+        messages.append({
+            "role": "user", 
+            "content": f"Here are the live search results:\n{search_results}\n\nBased ONLY on this information, answer my original question briefly."
+        })
+        
+        final_completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            temperature=0.7,
+        )
+        return final_completion.choices[0].message.content.strip()
+    
+    return response
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
 speaker.Rate = 2 
@@ -84,7 +124,7 @@ def listen_and_respond():
 
             if full_transcription:
                 print(f"\n You: {full_transcription}")
-                print("🧠 Jarvis is thinking...")
+                print(" Jarvis is thinking...")
 
                 answer = think(full_transcription)
             
