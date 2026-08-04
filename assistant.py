@@ -5,14 +5,14 @@ import numpy as np
 from faster_whisper import WhisperModel
 from groq import Groq
 from dotenv import load_dotenv
-import pyttsx3 
+import win32com.client 
 
 load_dotenv()
 
 API_KEY = os.getenv("GROQ_API_KEY")
 
 if API_KEY is None or API_KEY == "":
-    print("\n🛑 ERROR: The Brain is missing its API Key!")
+    print("\n ERROR: The Brain is missing its API Key!")
     print("Please make sure you have a .env file with your GROQ_API_KEY set.")
     sys.exit()
 
@@ -37,14 +37,12 @@ def think(user_input):
     
     return completion.choices[0].message.content
 
-voice_engine = pyttsx3.init()
-
-voice_engine.setProperty('rate', 190) 
+speaker = win32com.client.Dispatch("SAPI.SpVoice")
+speaker.Rate = 2 
 
 def speak(text):
     print(" Jarvis is speaking...")
-    voice_engine.say(text)
-    voice_engine.runAndWait()
+    speaker.Speak(text)
 
 
 def listen_and_respond():
