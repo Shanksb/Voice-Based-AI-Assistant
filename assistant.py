@@ -6,7 +6,7 @@ from faster_whisper import WhisperModel
 from groq import Groq
 from dotenv import load_dotenv
 import win32com.client 
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 
 # 1. SETUP THE ENVIRONMENT
 load_dotenv()
