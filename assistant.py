@@ -6,14 +6,14 @@ from faster_whisper import WhisperModel
 from groq import Groq
 from dotenv import load_dotenv
 import win32com.client 
-from ddgs import DDGS
+from ddgs import DDGS 
+import datetime
 
-# 1. SETUP THE ENVIRONMENT
 load_dotenv()
 API_KEY = os.getenv("GROQ_API_KEY")
 
 if API_KEY is None or API_KEY == "":
-    print("\n ERROR: The Brain is missing its API Key!")
+    print("\nERROR: The Brain is missing its API Key!")
     print("Please make sure you have a .env file with your GROQ_API_KEY set.")
     sys.exit()
 
@@ -27,17 +27,22 @@ def speak(text):
 
 
 def search_web(query):
-    print(f" Jarvis is searching the web for: '{query}'...")
+    print(f"Jarvis is searching the web for: '{query}'...")
     try:
-        # Ask DuckDuckGo for the top 3 results
-        results = DDGS().text(query, max_results=3)
+        if "news" in query.lower():
+            results = DDGS().news(query, max_results=3)
+        else:
+            results = DDGS().text(query, max_results=3)
+            
         if not results:
-            print(" Search returned empty.")
+            print("Search returned empty.")
             return "No search results found."
         
         search_text = ""
         for res in results:
-            search_text += f"- {res['body']}\n"
+            title = res.get('title', '')
+            body = res.get('body', '')
+            search_text += f"- {title}: {body}\n"
         return search_text
         
     except Exception as e:
@@ -45,8 +50,12 @@ def search_web(query):
         return f"Search failed: {e}"
 
 def think(user_input):
+    current_date = datetime.datetime.now().strftime("%B %d, %Y")
+    current_year = datetime.datetime.now().strftime("%Y")
+
     system_prompt = """You are a helpful, witty, and concise AI assistant named Jarvis. 
     Keep your answers short and conversational. Do not use markdown formatting.
+    Today's date is {current_date}.
     
     CRITICAL RULE: If the user asks about current events, real-time data, weather, or something you don't know, you must reply EXACTLY with this format:
     SEARCH: [your search query]
@@ -57,7 +66,6 @@ def think(user_input):
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_input}
     ]
-
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=messages,
@@ -76,9 +84,9 @@ def think(user_input):
             "role": "user", 
             "content": f"Here are the live search results:\n{search_results}\n\nBased ONLY on this information, answer my original question briefly."
         })
-
-        messages[0]["content"] = "You are Jarvis. Answer the user using ONLY the search results provided. If the search results say 'Search failed', apologize and say you cannot access the internet right now."
-
+        
+        messages[0]["content"] = "You are Jarvis. Answer the user using ONLY the search results provided. If the results contain news headlines, read them to the user naturally as if you are a news anchor. If the search results say 'Search failed', apologize."
+        
         final_completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
@@ -120,11 +128,12 @@ def listen_and_respond():
             
             if full_transcription:
                 print(f"\nYou: {full_transcription}")
-                print(" Jarvis is thinking...")
-
+                print("Jarvis is thinking...")
+                
+                # Hand the text to the upgraded Brain
                 answer = think(full_transcription)
-            
-                print(f" Jarvis: {answer}")
+                
+                print(f"Jarvis: {answer}")
                 speak(answer)
                 
                 print("\nListening...") 
